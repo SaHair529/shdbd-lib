@@ -9,6 +9,7 @@ use App\Repository\BookRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
+use Nelmio\ApiDocBundle\Annotation\Model;
 use OpenApi\Attributes as OA;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -42,11 +43,7 @@ class BookController extends AbstractController
             new OA\Response(
                 response: 201,
                 description: "Книга успешно создана",
-                content: new OA\JsonContent(
-                    properties: [
-                        new OA\Property(property: 'message', type: 'string', example: 'Created successfully'),
-                    ]
-                )
+                content: new OA\JsonContent(ref: new Model(type: Book::class))
             ),
             new OA\Response(
                 response: 400,
@@ -76,6 +73,6 @@ class BookController extends AbstractController
         $this->entityManager->persist($book);
         $this->entityManager->flush();
 
-        return $this->json(['message' => 'Created successfully'], Response::HTTP_CREATED);
+        return $this->json($book, Response::HTTP_CREATED);
     }
 }
