@@ -20,7 +20,7 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/api/books', name: 'create_book')]
 class BookController extends AbstractController
 {
-    public function __construct(private BookRepository $bookRepository, private EntityManagerInterface $entityManager)
+    public function __construct(private BookRepository $bookRepository, private readonly EntityManagerInterface $entityManager)
     {
     }
 
