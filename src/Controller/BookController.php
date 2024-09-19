@@ -82,7 +82,6 @@ class BookController extends AbstractController
             content: new OA\JsonContent(
                 properties: [
                     new OA\Property(property: "title", type: "string", example: "Новая книга"),
-                    new OA\Property(property: "publishedAt", type: "string", format: "date", example: "2023-01-01")
                 ]
             )
         ),
