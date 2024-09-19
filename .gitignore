@@ -11,4 +11,5 @@
 
 ###> developer ###
 /.idea/
+/public/uploads/
 ###< developer ###
