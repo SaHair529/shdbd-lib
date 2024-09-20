@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\Book;
+use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
@@ -16,6 +17,38 @@ class BookControllerTest extends WebTestCase
     {
         $this->client = static::createClient();
         $this->entityManager = $this->client->getContainer()->get(EntityManagerInterface::class);
+
+        // Очистка таблицы книг перед каждым тестом
+        $this->entityManager->createQuery('DELETE FROM App\Entity\Book')->execute();
+    }
+
+    public function testListSuccessfully(): void
+    {
+        // Предварительно добавляем несколько книг в базу данных
+        $book1 = new Book();
+        $book1->setTitle('Book 1 from list test');
+        $book1->setPublishedAt(new DateTimeImmutable());
+
+        $book2 = new Book();
+        $book2->setTitle('Book 2 from list test');
+        $book2->setPublishedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($book1);
+        $this->entityManager->persist($book2);
+        $this->entityManager->flush();
+
+        $this->client->request('GET', '/api/books');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertIsArray($responseData);
+        $this->assertCount(2, $responseData);
+
+        $this->assertEquals('Book 1 from list test', $responseData[0]['title']);
+        $this->assertEquals('Book 2 from list test', $responseData[1]['title']);
     }
 
     public function testCreateSuccessfully(): void
