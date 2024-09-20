@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 class BookControllerTest extends WebTestCase
 {
     private KernelBrowser $client;
-    private $entityManager;
+    private ?EntityManagerInterface $entityManager;
     protected function setUp(): void
     {
         $this->client = static::createClient();
@@ -36,5 +36,20 @@ class BookControllerTest extends WebTestCase
 
         $book = $this->entityManager->getRepository(Book::class)->findOneBy(['title' => $data['title']]);
         $this->assertnotnull($book);
+    }
+
+    public function testCreateFailsWithMissingTitle(): void
+    {
+        $data = [];
+
+        $this->client->request('POST', '/api/books', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode($data));
+
+        $this->assertresponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertArrayHasKey('error', $responseData);
+        $this->assertEquals('Invalid data', $responseData['error']);
     }
 }
