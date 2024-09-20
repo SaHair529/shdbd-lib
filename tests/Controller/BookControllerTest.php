@@ -22,7 +22,7 @@ class BookControllerTest extends WebTestCase
         $this->entityManager->createQuery('DELETE FROM App\Entity\Book')->execute();
     }
 
-    public function testListSuccessfully(): void
+    public function testListBooksSuccessfully(): void
     {
         // Предварительно добавляем несколько книг в базу данных
         $book1 = new Book();
@@ -51,7 +51,7 @@ class BookControllerTest extends WebTestCase
         $this->assertEquals('Book 2 from list test', $responseData[1]['title']);
     }
 
-    public function testCreateSuccessfully(): void
+    public function testCreateBookSuccessfully(): void
     {
         $data = ['title' => 'Тестовая книга'];
 
@@ -71,7 +71,7 @@ class BookControllerTest extends WebTestCase
         $this->assertnotnull($book);
     }
 
-    public function testCreateFailsWithMissingTitle(): void
+    public function testCreateBookFailsWithMissingTitle(): void
     {
         $data = [];
 
