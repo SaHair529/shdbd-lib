@@ -116,4 +116,63 @@ class BookControllerTest extends WebTestCase
         $this->assertArrayHasKey('error', $responseData);
         $this->assertEquals('Invalid data', $responseData['error']);
     }
+
+    public function testDeleteBookSuccessfully(): void
+    {
+        $book = new Book();
+        $book->setTitle('Тестовая книга');
+        $book->setPublishedAt(new \DateTimeImmutable());
+
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+        $deletedBookId = $book->getId();
+
+        $this->client->request('DELETE', '/api/books/' . $book->getId());
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+
+        $deletedBook = $this->entityManager->getRepository(Book::class)->find($deletedBookId);
+        $this->assertNull($deletedBook);
+    }
+
+    public function testDeleteBookNotFound(): void
+    {
+        $this->client->request('DELETE', '/api/books/999999'); // Предполагаем, что книги с таким ID нет
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertEquals('Книга не найдена', $responseData['error']);
+    }
+
+    public function testPatchBookSuccessfully(): void
+    {
+        $book = new Book();
+        $book->setTitle('Старая книга');
+        $book->setPublishedAt(new \DateTimeImmutable());
+
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        $this->client->request('PATCH', '/api/books/' . $book->getId(), [], [], ['CONTENT_TYPE' => 'application/json'], json_encode(['title' => 'Обновленная книга']));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $updatedBook = $this->entityManager->getRepository(Book::class)->find($book->getId());
+        $this->assertEquals('Обновленная книга', $updatedBook->getTitle());
+    }
+
+    public function testPatchBookNotFound(): void
+    {
+        $this->client->request('PATCH', '/api/books/999999', [], [], ['CONTENT_TYPE' => 'application/json'], json_encode(['title' => 'Неизвестная книга']));
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertEquals('Книга не найдена', $responseData[0]['error']);
+    }
 }
