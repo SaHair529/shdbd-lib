@@ -51,6 +51,37 @@ class BookControllerTest extends WebTestCase
         $this->assertEquals('Book 2 from list test', $responseData[1]['title']);
     }
 
+    public function testGetBookSuccessfully(): void
+    {
+        $book = new Book();
+        $book->setTitle('Тестовая книга');
+        $book->setPublishedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        $this->client->request('GET', '/api/books/' . $book->getId());
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertEquals($book->getTitle(), $responseData['title']);
+        $this->assertEquals($book->getPublishedAt()->format('Y-m-d\TH:i:sP'), $responseData['publishedAt']);
+    }
+
+    public function testGetBookNotFound(): void
+    {
+        $this->client->request('GET', '/api/books/999999'); // Предполагаем, что книги с таким ID нет
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $responseData = json_decode($responseContent, true);
+
+        $this->assertEquals('Книга не найдена', $responseData['error']);
+    }
+
     public function testCreateBookSuccessfully(): void
     {
         $data = ['title' => 'Тестовая книга'];
