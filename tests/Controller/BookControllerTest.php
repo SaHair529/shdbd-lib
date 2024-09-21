@@ -198,7 +198,7 @@ class BookControllerTest extends WebTestCase
             'POST',
             '/api/books/upload/' . $book->getId(),
             [],
-            ['file' => new UploadedFile($filePath, 'file.pdf', 'application/pdf', null, true)]
+            ['file' => new UploadedFile($filePath, 'file.txt', 'application/txt', null, true)]
         );
 
         $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
@@ -211,5 +211,54 @@ class BookControllerTest extends WebTestCase
         rmdir(dirname($filePath));
         unlink($uploadedFilePath);
         rmdir(dirname($uploadedFilePath));
+    }
+
+    public function testUploadFileNotProvided(): void
+    {
+        $book = new Book();
+        $book->setTitle('Книга для теста загрузки');
+        $book->setPublishedAt(new DateTimeImmutable());
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        // Отправляем POST-запрос без файла
+        $this->client->request('POST', '/api/books/upload/' . $book->getId(), [], [], ['CONTENT_TYPE' => 'multipart/form-data']);
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $this->assertJson($responseContent);
+
+        $responseData = json_decode($responseContent, true);
+        $this->assertArrayHasKey('error', $responseData);
+        $this->assertEquals('File not provided', $responseData['error']);
+    }
+
+    public function testUploadFileProvided(): void
+    {
+        $nonExistentBookId = 9999;
+
+        $projectDir = $this->client->getContainer()->getParameter('kernel.project_dir');
+        $filePath = $projectDir . '/var/tmp/test_file.txt';
+
+        if (!is_dir(dirname($filePath)))
+            mkdir(dirname($filePath), 0755, true);
+
+        file_put_contents($filePath, 'Тестовое содержание файла');
+
+        $this->client->request(
+            'POST',
+            '/api/books/upload/' . $nonExistentBookId,
+            [],
+            ['file' => new UploadedFile($filePath, 'file.txt', 'application/txt', null, true)]
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+
+        $responseContent = $this->client->getResponse()->getContent();
+        $this->assertJson($responseContent);
+
+        $responseData = json_decode($responseContent, true);
+        $this->assertArrayHasKey('error', $responseData);
+        $this->assertEquals('Книга не найдена', $responseData['error'] ?? '');
     }
 }
