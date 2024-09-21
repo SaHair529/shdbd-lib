@@ -286,17 +286,17 @@ class BookController extends AbstractController
             new OA\Response(
                 response: 200,
                 description: 'Файл успешно скачан',
-                content: new OA\MediaType(
-                    mediaType: 'application/octet-stream',
-                    schema: new OA\Schema(type: 'string', format: 'binary')
-                ),
                 headers: [
                     new OA\Header(
                         header: 'Content-Disposition',
                         description: 'Информация о вложении для загрузки файла',
                         schema: new OA\Schema(type: 'string')
                     )
-                ]
+                ],
+                content: new OA\MediaType(
+                    mediaType: 'application/octet-stream',
+                    schema: new OA\Schema(type: 'string', format: 'binary')
+                )
             ),
             new OA\Response(
                 response: 400,
