@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class BookControllerTest extends WebTestCase
@@ -121,7 +122,7 @@ class BookControllerTest extends WebTestCase
     {
         $book = new Book();
         $book->setTitle('Тестовая книга');
-        $book->setPublishedAt(new \DateTimeImmutable());
+        $book->setPublishedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();
@@ -151,7 +152,7 @@ class BookControllerTest extends WebTestCase
     {
         $book = new Book();
         $book->setTitle('Старая книга');
-        $book->setPublishedAt(new \DateTimeImmutable());
+        $book->setPublishedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();
@@ -174,5 +175,41 @@ class BookControllerTest extends WebTestCase
         $responseData = json_decode($responseContent, true);
 
         $this->assertEquals('Книга не найдена', $responseData[0]['error']);
+    }
+
+    public function testUploadBookFileSuccessfully(): void
+    {
+        $book = new Book();
+        $book->setTitle('Тестовая книга');
+        $book->setPublishedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        $projectDir = $this->client->getContainer()->getParameter('kernel.project_dir');
+        $filePath = $projectDir . '/var/tmp/test_file.txt';
+
+        if (!is_dir(dirname($filePath)))
+            mkdir(dirname($filePath), 0755, true);
+
+        file_put_contents($filePath, 'Тестовое содержание файла');
+
+        $this->client->request(
+            'POST',
+            '/api/books/upload/' . $book->getId(),
+            [],
+            ['file' => new UploadedFile($filePath, 'file.pdf', 'application/pdf', null, true)]
+        );
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_CREATED);
+        $responseData = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertEquals('File uploaded successfully', $responseData['message']);
+
+        $uploadedFilePath = $projectDir.'/public/uploads/books/'.$book->getId().'/'.$book->getId().'.txt';
+        $this->assertfileexists($uploadedFilePath);
+
+        rmdir(dirname($filePath));
+        unlink($uploadedFilePath);
+        rmdir(dirname($uploadedFilePath));
     }
 }
