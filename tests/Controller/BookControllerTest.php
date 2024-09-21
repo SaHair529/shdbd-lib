@@ -261,4 +261,58 @@ class BookControllerTest extends WebTestCase
         $this->assertArrayHasKey('error', $responseData);
         $this->assertEquals('Книга не найдена', $responseData['error'] ?? '');
     }
+
+    public function testDownloadFileSuccess(): void
+    {
+        $book = new Book();
+        $book->setTitle('Тестовая книга для скачивания');
+        $book->setPublishedAt(new DateTimeImmutable());
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        $uploadDirectory = $this->client->getKernel()->getProjectDir() . "/public/uploads/books/{$book->getId()}";
+        mkdir($uploadDirectory, 0755, true);
+        $filePath = $uploadDirectory . "/{$book->getId()}.txt";
+        touch($filePath);
+        file_put_contents($filePath, 'Test');
+
+        $this->client->request('GET', '/api/books/download/' . $book->getId() . '?fileType=txt');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        unlink($filePath);
+        rmdir($uploadDirectory);
+    }
+
+    public function testDownloadNonExistentFile(): void
+    {
+        // Создаем тестовую книгу
+        $book = new Book();
+        $book->setTitle('Тестовая книга для отсутствующего файла');
+        $book->setPublishedAt(new DateTimeImmutable());
+        $this->entityManager->persist($book);
+        $this->entityManager->flush();
+
+        // Отправляем GET-запрос для несуществующего файла
+        $this->client->request('GET', '/api/books/download/' . $book->getId() . '?fileType=epub');
+
+        // Проверяем, что ответ имеет статус 400 и выведено сообщение об ошибке
+        $this->assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
+        $this->assertJsonStringEqualsJsonString(
+            json_encode(['error' => 'File not found']),
+            $this->client->getResponse()->getContent()
+        );
+    }
+
+    public function testDownloadFileForNonExistentBook(): void
+    {
+        $this->client->request('GET', '/api/books/download/999999?fileType=pdf');
+
+        $this->assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+        $this->assertJsonStringEqualsJsonString(
+            json_encode(['error' => 'Книга не найдена']),
+            $this->client->getResponse()->getContent()
+        );
+    }
+
 }
