@@ -241,7 +241,7 @@ class BookController extends AbstractController
     {
         $book = $this->bookRepository->find($id);
         if (null === $book) {
-            return $this->json([['error' => 'Книга не найдена']], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Книга не найдена'], Response::HTTP_NOT_FOUND);
         }
 
         $file = $request->files->get('file');
@@ -322,7 +322,7 @@ class BookController extends AbstractController
     {
         $book = $this->bookRepository->find($id);
         if (null === $book) {
-            return $this->json([['error' => 'Книга не найдена']], Response::HTTP_NOT_FOUND);
+            return $this->json(['error' => 'Книга не найдена'], Response::HTTP_NOT_FOUND);
         }
 
         // Получение типа файла из запроса (например, pdf, epub, mobi)
