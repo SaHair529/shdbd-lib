@@ -237,8 +237,13 @@ class BookController extends AbstractController
             )
         ]
     )]
-    public function upload(Request $request, Book $book): JsonResponse
+    public function upload(Request $request, int $id): JsonResponse
     {
+        $book = $this->bookRepository->find($id);
+        if (null === $book) {
+            return $this->json([['error' => 'Книга не найдена']], Response::HTTP_NOT_FOUND);
+        }
+
         $file = $request->files->get('file');
 
         if (null === $file)
@@ -259,8 +264,8 @@ class BookController extends AbstractController
 
     #[Route('/download/{id}', name: 'book_download', methods: ['GET'])]
     #[OA\Get(
-        summary: "Скачивание файла книги",
         description: "Скачивает файл книги указанного типа, привязанный к сущности Book с указанным ID.",
+        summary: "Скачивание файла книги",
         parameters: [
             new OA\Parameter(
                 name: 'id',
@@ -313,8 +318,13 @@ class BookController extends AbstractController
             )
         ]
     )]
-    public function download(Book $book, Request $request): Response
+    public function download(int $id, Request $request): Response
     {
+        $book = $this->bookRepository->find($id);
+        if (null === $book) {
+            return $this->json([['error' => 'Книга не найдена']], Response::HTTP_NOT_FOUND);
+        }
+
         // Получение типа файла из запроса (например, pdf, epub, mobi)
         $fileType = $request->query->get('fileType');
         if (null === $fileType)
