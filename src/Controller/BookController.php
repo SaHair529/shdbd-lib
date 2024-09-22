@@ -180,9 +180,10 @@ class BookController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        if (isset($data['title'])) {
+        if (isset($data['title']))
             $book->setTitle($data['title']);
-        }
+        if (isset($data['coverImageUrl']))
+            $book->setTitle($data['title']);
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();

@@ -19,6 +19,9 @@ class Book
     #[ORM\Column]
     private ?\DateTimeImmutable $publishedAt = null;
 
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $coverImageUrl = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -44,6 +47,18 @@ class Book
     public function setPublishedAt(\DateTimeImmutable $publishedAt): static
     {
         $this->publishedAt = $publishedAt;
+
+        return $this;
+    }
+
+    public function getCoverImageUrl(): ?string
+    {
+        return $this->coverImageUrl;
+    }
+
+    public function setCoverImageUrl(?string $coverImageUrl): static
+    {
+        $this->coverImageUrl = $coverImageUrl;
 
         return $this;
     }
