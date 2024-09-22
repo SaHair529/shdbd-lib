@@ -183,7 +183,7 @@ class BookController extends AbstractController
         if (isset($data['title']))
             $book->setTitle($data['title']);
         if (isset($data['coverImageUrl']))
-            $book->setTitle($data['coverImageUrl']);
+            $book->setCoverImageUrl($data['coverImageUrl']);
 
         $this->entityManager->persist($book);
         $this->entityManager->flush();
