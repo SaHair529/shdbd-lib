@@ -18,7 +18,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-#[Route('/api/books', name: 'create_book')]
+#[Route('/api/books', name: 'create_book', methods: ['OPTIONS'])]
 class BookController extends AbstractController
 {
     public function __construct(private readonly BookRepository $bookRepository, private readonly EntityManagerInterface $entityManager)
