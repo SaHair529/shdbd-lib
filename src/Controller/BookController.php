@@ -114,6 +114,8 @@ class BookController extends AbstractController
         // Создание новой книги
         $book = new Book();
         $book->setTitle($data['title']);
+        if (isset($data['coverImageUrl']))
+            $book->setCoverImageUrl($data['coverImageUrl']);
         $book->setPublishedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($book);
